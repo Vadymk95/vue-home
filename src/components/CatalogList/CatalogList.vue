@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { CatalogList } from '@/components/CatalogList/catalogList.interface';
 import { reactive } from 'vue';
+import { useQuery } from 'vue-query';
+import axios from 'axios';
 import styles from './CatalogList.module.scss';
 
 type State = {
@@ -8,15 +10,16 @@ type State = {
   text: string;
 };
 
+const getCatalogs =
+  'https://jsonplaceholder.typicode.com/posts?_page=0&_limit=10';
+
+const fetcher = async (): Promise<CatalogList[]> =>
+  await axios.get(getCatalogs).then((res) => (state.catalogList = res.data));
+
+const { isLoading } = useQuery('catalogList', fetcher);
+
 const state: State = reactive({
-  catalogList: [
-    { title: 'Catalog 1', id: 1, body: 'Catalog 1 body', userId: 1 },
-    { title: 'Catalog 2', id: 2, body: 'Catalog 2 body', userId: 2 },
-    { title: 'Catalog 3', id: 3, body: 'Catalog 3 body', userId: 3 },
-    { title: 'Catalog 4', id: 4, body: 'Catalog 4 body', userId: 4 },
-    { title: 'Catalog 5', id: 5, body: 'Catalog 5 body', userId: 5 },
-    { title: 'Catalog 6', id: 6, body: 'Catalog 6 body', userId: 6 }
-  ],
+  catalogList: [],
   text: ''
 });
 
@@ -45,6 +48,7 @@ const removeCatalog = (id: number) => {
       <button type="submit">Add Catalog</button>
     </form>
     <div v-if="!state.catalogList.length">Catalogs not found!</div>
+    <div v-if="isLoading">Loading...</div>
     <ul v-else>
       <li
         v-for="catalog in state.catalogList"
